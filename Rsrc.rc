@@ -84,6 +84,7 @@ BEGIN
         MENUITEM "&Options...\tCtrl-O",         IDM_OPTIONS
         MENUITEM "&General...\tCtrl-G",         IDM_GENERAL
         MENUITEM "&SMTP/Email...\tCtrl-M",      IDM_MAIL
+        MENUITEM "HTTP &POST...",               IDM_HTTPPOST
     END
     POPUP "Filters"
     BEGIN
@@ -209,13 +210,13 @@ BEGIN
     LTEXT           ".....",IDC_DEBUG_FLEXTIME,46,50,48,8
     LTEXT           "Messages :",IDC_STATIC,116,20,38,8
     LTEXT           ".....",IDC_DEBUG_MSG,183,20,34,8
-    LTEXT           "· Rejected :",IDC_STATIC,116,30,39,8
+    LTEXT           "ï¿½ Rejected :",IDC_STATIC,116,30,39,8
     LTEXT           ".....",IDC_DEBUG_REJECTED,183,30,34,8
-    LTEXT           "· Blocked :",IDC_STATIC,116,40,36,8
+    LTEXT           "ï¿½ Blocked :",IDC_STATIC,116,40,36,8
     LTEXT           ".....",IDC_DEBUG_BLOCKED,183,40,34,8
-    LTEXT           "· Buffer (timer) :",IDC_STATIC,120,50,56,8
+    LTEXT           "ï¿½ Buffer (timer) :",IDC_STATIC,120,50,56,8
     LTEXT           ".....",IDC_DEBUG_BLOCKBUFFER,183,50,34,8
-    LTEXT           "· Groupcalls :",IDC_STATIC,116,60,45,8
+    LTEXT           "ï¿½ Groupcalls :",IDC_STATIC,116,60,45,8
     LTEXT           ".....",IDC_DEBUG_GROUPMSG,183,60,34,8
     LTEXT           "Missed groupcalls :",IDC_STATIC,116,70,63,8
     LTEXT           ".....",IDC_DEBUG_MISSED,183,70,34,8
@@ -387,7 +388,7 @@ BEGIN
     EDITTEXT        IDC_BLOCKDUPTIMER,271,41,9,13,ES_CENTER | ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Log blocked messages to 'blocked.txt'",IDC_BLOCKEDTXT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,43,140,10
-    CONTROL         "Convert '»' character to linefeed",IDC_LINEFEEDS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,62,122,10
+    CONTROL         "Convert 'ï¿½' character to linefeed",IDC_LINEFEEDS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,15,62,122,10
     CONTROL         "Separate/group messages with empty line",IDC_SEPARATOR,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,142,62,154,10
     LTEXT           "Date format (as logfile name) :",IDC_STATIC,15,82,103,8
@@ -833,6 +834,27 @@ BEGIN
     CONTROL         "SSL",IDC_SMTP_SSL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,253,23,25,10
 END
 
+HTTPPOST_DLGBOX DIALOGEX 0, 0, 300, 142
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "HTTP POST settings"
+FONT 8, "Verdana", 0, 0, 0x0
+BEGIN
+    CONTROL         "HTTP POST enabled",IDC_HTTPPOST_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,8,90,10
+    LTEXT           "Endpoint URL (http/https)",IDC_STATIC,10,23,109,8
+    EDITTEXT        IDC_HTTPPOST_URL,10,33,280,13,ES_AUTOHSCROLL
+    CONTROL         "Use Basic Authentication",IDC_HTTPPOST_AUTH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,52,108,10
+    LTEXT           "Username",IDC_STATIC,10,66,33,8
+    EDITTEXT        IDC_HTTPPOST_USER,56,63,102,13,ES_AUTOHSCROLL
+    LTEXT           "Password",IDC_STATIC,166,66,32,8
+    EDITTEXT        IDC_HTTPPOST_PASSWORD,206,63,84,13,ES_PASSWORD | ES_AUTOHSCROLL
+    LTEXT           "Queue max size",IDC_STATIC,10,88,49,8
+    EDITTEXT        IDC_HTTPPOST_QUEUE_MAX,74,85,40,13,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Queue TTL (sec)",IDC_STATIC,130,88,52,8
+    EDITTEXT        IDC_HTTPPOST_QUEUE_TTL,194,85,40,13,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,188,120,47,14
+    PUSHBUTTON      "Cancel",IDCANCEL,243,120,47,14
+END
+
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -1053,4 +1075,3 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-
