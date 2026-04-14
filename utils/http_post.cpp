@@ -89,16 +89,21 @@ static std::wstring ToWide(const char *input)
 {
 	if (!input || !input[0]) return L"";
 	int needed = MultiByteToWideChar(CP_UTF8, 0, input, -1, NULL, 0);
-	if (needed <= 0) needed = MultiByteToWideChar(CP_ACP, 0, input, -1, NULL, 0);
+	UINT codePage = CP_UTF8;
+	if (needed <= 0)
+	{
+		codePage = CP_ACP;
+		needed = MultiByteToWideChar(codePage, 0, input, -1, NULL, 0);
+	}
 	if (needed <= 0) return L"";
 
 	std::wstring out;
-	out.resize(needed - 1);
-
+	out.resize(needed);
 	if (!out.empty())
 	{
-		int ok = MultiByteToWideChar(CP_UTF8, 0, input, -1, &out[0], needed);
-		if (ok <= 0) MultiByteToWideChar(CP_ACP, 0, input, -1, &out[0], needed);
+		int ok = MultiByteToWideChar(codePage, 0, input, -1, &out[0], needed);
+		if (ok <= 0) return L"";
+		if (!out.empty() && out[out.size() - 1] == L'\0') out.resize(out.size() - 1);
 	}
 	return out;
 }
