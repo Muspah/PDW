@@ -365,7 +365,7 @@ int HttpPostQueueMessage(int bMatch, int bMonitorOnly, int iSeparateSMTP,
 	entry.payload = json;
 
 	EnterCriticalSection(&g_httpLock);
-	if ((int)g_httpQueue.size() >= cfg.queueMax)
+	if (g_httpQueue.size() >= (size_t)cfg.queueMax)
 	{
 		g_httpQueue.pop_front();
 		OUTPUTDEBUGMSG((("HTTP POST queue: queue full, dropping oldest item")));
