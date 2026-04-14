@@ -252,7 +252,11 @@ static DWORD WINAPI HttpPostThreadFunc(LPVOID)
 
 		ULONGLONG ageMs = GetTickCount64() - item.enqueueTick;
 		ULONGLONG ttlMs = (ULONGLONG)cfg.queueTtlSeconds * 1000ULL;
-		if (ageMs > ttlMs) continue;
+		if (ageMs > ttlMs)
+		{
+			OUTPUTDEBUGMSG((("HTTP POST queue: dropping expired item (TTL exceeded)")));
+			continue;
+		}
 
 		if (!SendJsonPost(cfg, item.payload))
 		{
@@ -361,7 +365,11 @@ int HttpPostQueueMessage(int bMatch, int bMonitorOnly, int iSeparateSMTP,
 	entry.payload = json;
 
 	EnterCriticalSection(&g_httpLock);
-	if ((int)g_httpQueue.size() >= cfg.queueMax) g_httpQueue.pop_front();
+	if ((int)g_httpQueue.size() >= cfg.queueMax)
+	{
+		g_httpQueue.pop_front();
+		OUTPUTDEBUGMSG((("HTTP POST queue: queue full, dropping oldest item")));
+	}
 	g_httpQueue.push_back(entry);
 	LeaveCriticalSection(&g_httpLock);
 
