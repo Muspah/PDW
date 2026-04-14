@@ -28,7 +28,7 @@ typedef struct _HTTPPOSTCONFIG
 
 typedef struct _HTTPPOSTENTRY
 {
-	DWORD enqueueTick;
+	ULONGLONG enqueueTick;
 	std::string payload;
 } HTTPPOSTENTRY;
 
@@ -139,32 +139,32 @@ static BOOL SendJsonPost(const HTTPPOSTCONFIG& cfg, const std::string& payload)
 {
 	if (!cfg.enabled || cfg.url.empty()) return FALSE;
 
-	URL_COMPONENTSA uc;
+	std::wstring wurl = ToWide(cfg.url.c_str());
+	if (wurl.empty()) return FALSE;
+
+	URL_COMPONENTS uc;
 	ZeroMemory(&uc, sizeof(uc));
 	uc.dwStructSize = sizeof(uc);
 
-	char hostName[512] = { 0 };
-	char urlPath[2048] = { 0 };
-	char extraInfo[2048] = { 0 };
+	wchar_t hostName[512] = { 0 };
+	wchar_t urlPath[2048] = { 0 };
+	wchar_t extraInfo[2048] = { 0 };
 	uc.lpszHostName = hostName;
-	uc.dwHostNameLength = sizeof(hostName);
+	uc.dwHostNameLength = (DWORD)(sizeof(hostName) / sizeof(hostName[0]));
 	uc.lpszUrlPath = urlPath;
-	uc.dwUrlPathLength = sizeof(urlPath);
+	uc.dwUrlPathLength = (DWORD)(sizeof(urlPath) / sizeof(urlPath[0]));
 	uc.lpszExtraInfo = extraInfo;
-	uc.dwExtraInfoLength = sizeof(extraInfo);
+	uc.dwExtraInfoLength = (DWORD)(sizeof(extraInfo) / sizeof(extraInfo[0]));
 
-	if (!WinHttpCrackUrl(cfg.url.c_str(), 0, 0, &uc))
+	if (!WinHttpCrackUrl(wurl.c_str(), 0, 0, &uc))
 	{
 		return FALSE;
 	}
 
-	std::string host(hostName, uc.dwHostNameLength);
-	std::string path(urlPath, uc.dwUrlPathLength);
-	path += std::string(extraInfo, uc.dwExtraInfoLength);
-	if (path.empty()) path = "/";
-
-	std::wstring whost = ToWide(host.c_str());
-	std::wstring wpath = ToWide(path.c_str());
+	std::wstring whost(hostName, uc.dwHostNameLength);
+	std::wstring wpath(urlPath, uc.dwUrlPathLength);
+	wpath += std::wstring(extraInfo, uc.dwExtraInfoLength);
+	if (wpath.empty()) wpath = L"/";
 
 	HINTERNET hSession = WinHttpOpen(L"PDW-HTTPPOST/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!hSession) return FALSE;
@@ -250,14 +250,13 @@ static DWORD WINAPI HttpPostThreadFunc(LPVOID)
 			continue;
 		}
 
-		DWORD ageMs = GetTickCount() - item.enqueueTick;
-		DWORD ttlMs = (DWORD)cfg.queueTtlSeconds * 1000UL;
+		ULONGLONG ageMs = GetTickCount64() - item.enqueueTick;
+		ULONGLONG ttlMs = (ULONGLONG)cfg.queueTtlSeconds * 1000ULL;
 		if (ageMs > ttlMs) continue;
 
 		if (!SendJsonPost(cfg, item.payload))
 		{
 			EnterCriticalSection(&g_httpLock);
-			if ((int)g_httpQueue.size() >= cfg.queueMax) g_httpQueue.pop_front();
 			g_httpQueue.push_front(item);
 			LeaveCriticalSection(&g_httpLock);
 			Sleep(1000);
@@ -358,7 +357,7 @@ int HttpPostQueueMessage(int bMatch, int bMonitorOnly, int iSeparateSMTP,
 	json += "}";
 
 	HTTPPOSTENTRY entry;
-	entry.enqueueTick = GetTickCount();
+	entry.enqueueTick = GetTickCount64();
 	entry.payload = json;
 
 	EnterCriticalSection(&g_httpLock);
